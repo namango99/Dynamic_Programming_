@@ -1,0 +1,159 @@
+//Problem Link : https://www.spoj.com/problems/SERVICE/
+
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.StringTokenizer;
+
+
+class Main {
+
+	public static class Pair{
+		int first;
+		int second;
+	
+		public Pair(int first,int second) {
+			this.first=Integer.max(first, second);
+			this.second=Integer.min(first, second);
+		}
+ 	}
+	
+	public static void main(String[] args) {
+		out=new PrintWriter (new BufferedOutputStream(System.out));
+		FastReader s=new FastReader();
+		int t=s.nextInt();
+		while(t-->0) {
+			int l=s.nextInt();
+			int n=s.nextInt();
+			HashMap<Long,Integer> map=new HashMap<Long,Integer>();
+			HashMap<Integer,Long> reversemap=new HashMap<Integer,Long>();
+			int count=0;
+			for(int i=1;i<=l;i++) {
+				for(int j=i+1;j<=l;j++) {
+					long hash=hashCode(i,j);
+					reversemap.put(count,hash);
+					map.put(hash, count++);
+				}
+			}
+			int[][] dp=new int[count][n+1];
+			for(int i=0;i<count;i++) {
+				Arrays.fill(dp[i],Integer.MAX_VALUE);
+			}
+			long hash=hashCode(2,3);
+			int value=map.get(hash);
+			dp[value][0]=0;
+			int[][] costs=new int[l][l];
+			for(int i=0;i<l;i++) {
+				for(int j=0;j<l;j++) {
+					costs[i][j]=s.nextInt();
+				}
+			}
+			int[] requests=new int[n];
+			for(int i=0;i<n;i++) {
+				requests[i]=s.nextInt();
+			}
+			for(int i=0;i<n;i++) {
+				for(int j=0;j<count;j++) {
+					if(dp[j][i]!=Integer.MAX_VALUE) {
+						int first=i==0?1:requests[i-1];
+						long temp1=reversemap.get(j);
+						Pair temp=reversehashCode(temp1);
+						int second=temp.first;
+						int third=temp.second;
+						int curr_cost=dp[j][i];
+						int curr_n=requests[i];
+						int pos1=j;
+						int pos2=map.get(hashCode(Integer.min(first, third),Integer.max(first, third)));
+						int pos3=map.get(hashCode(Integer.min(first,second),Integer.max(first,second)));
+						if(curr_n==first) {				
+							dp[pos1][i+1]=Integer.min(dp[pos1][i+1],curr_cost);
+							continue;
+						}else if(curr_n==second) {
+							dp[pos2][i+1]=Integer.min(dp[pos2][i+1],curr_cost);
+							continue;
+						}else if(curr_n==third) {
+							dp[pos3][i+1]=Integer.min(dp[pos3][i+1],curr_cost);
+							continue;
+						}
+						//if first changes to curr_n
+						dp[pos1][i+1]=Integer.min(dp[pos1][i+1], curr_cost+costs[first-1][curr_n-1]);
+						//if second changes to curr_n
+						dp[pos2][i+1]=Integer.min(dp[pos2][i+1], curr_cost+costs[second-1][curr_n-1]);
+						//if third changes to curr_n
+						dp[pos3][i+1]=Integer.min(dp[pos3][i+1], curr_cost+costs[third-1][curr_n-1]);
+					}
+				}
+			}
+			int min=Integer.MAX_VALUE;
+			for(int i=0;i<count;i++) {
+				if(dp[i][n]!=Integer.MAX_VALUE) {
+					min=Integer.min(dp[i][n], min);
+				}
+			}
+			out.println(min);
+		}
+		out.close();
+	}
+
+	public static long hashCode(long first,long second) {
+		return (first*100000)+second;//Since Overriding HashCode Was giving tle hence using this technique 
+	}
+	
+	public static Pair reversehashCode(long value) {
+		long first=value/100000;
+		long second=value%100000;
+		return new Pair((int)first,(int)second);
+	}
+	
+	public static PrintWriter out;
+	
+	public static class FastReader {
+		BufferedReader br;
+		StringTokenizer st;
+		//it reads the data about the specified point and divide the data about it ,it is quite fast
+		//than using direct 
+
+		public FastReader() {
+			br = new BufferedReader(new InputStreamReader(System.in));
+			//InputStream reads the data and decodes in character stream
+			//It acts as bridge between byte stream and character stream
+		}
+
+		String next() {
+			while (st == null || !st.hasMoreTokens()) {
+				try {
+					st = new StringTokenizer(br.readLine());
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			return st.nextToken();
+		}
+
+		int nextInt() {
+			return Integer.parseInt(next());//converts string to integer
+		}
+
+		double nextDouble() {
+			return Double.parseDouble(next());
+		}
+
+		long nextLong() {
+			return Long.parseLong(next());
+		}
+
+		String nextLine() {
+			String str = "";
+			try {
+				str = br.readLine();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return str;
+		}
+	}
+	
+}
